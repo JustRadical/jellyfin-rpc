@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use std::time::SystemTime;
 use url::Url;
+pub use external::image_utils::ImageProcessingOptions;
 
 mod error;
 mod external;
@@ -42,6 +43,7 @@ pub struct Client {
     imgur_options: ImgurOptions,
     litterbox_options: LitterboxOptions,
     process_images: bool,
+    image_processing_options: external::image_utils::ImageProcessingOptions,
     large_image_text: String,
 }
 
@@ -1013,6 +1015,10 @@ pub struct ClientBuilder {
     litterbox_urls_file_location: String,
     large_image_text: String,
     process_images: bool,
+    image_size: Option<u32>,
+    image_background: bool,
+    image_background_blur: f32,
+    image_corner_radius: Option<f32>,
 }
 
 impl ClientBuilder {
@@ -1032,6 +1038,9 @@ impl ClientBuilder {
             }),
             show_paused: true,
             process_images: true,
+            image_background: true,
+            image_background_blur: 3.0,
+            image_corner_radius: Some(4.0),
             ..Default::default()
         }
     }
@@ -1266,6 +1275,34 @@ impl ClientBuilder {
         self
     }
 
+    /// Set the size of the processed image (e.g., 512 for 512x512px).
+    /// Default: uses original image's largest dimension.
+    pub fn image_size(&mut self, size: Option<u32>) -> &mut Self {
+        self.image_size = size;
+        self
+    }
+
+    /// Enable or disable the blurred background for processed images.
+    /// Defaults to `true`. When disabled the background is transparent.
+    pub fn image_background(&mut self, val: bool) -> &mut Self {
+        self.image_background = val;
+        self
+    }
+
+    /// Set the blur radius for the background image as a percentage of canvas size.
+    /// Valid range: 0-50. Defaults to `3.0`.
+    pub fn image_background_blur(&mut self, blur: f32) -> &mut Self {
+        self.image_background_blur = blur;
+        self
+    }
+
+    /// Set the rounded corner radius as a percentage of the image size.
+    /// Only applied when background is disabled. Defaults to `4.0`.
+    pub fn image_corner_radius(&mut self, radius: Option<f32>) -> &mut Self {
+        self.image_corner_radius = radius;
+        self
+    }
+
     /// Text to be displayed when hovering the large activity image in Discord
     ///
     /// Empty by default
@@ -1342,6 +1379,12 @@ impl ClientBuilder {
                 urls_location: self.litterbox_urls_file_location,
             },
             process_images: self.process_images,
+            image_processing_options: external::image_utils::ImageProcessingOptions {
+                size: self.image_size,
+                background: self.image_background,
+                background_blur: self.image_background_blur,
+                corner_radius: self.image_corner_radius,
+            },
             large_image_text: self.large_image_text,
         })
     }

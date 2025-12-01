@@ -99,7 +99,7 @@ fn upload(client: &Client) -> JfResult<Url> {
 
     let body = if client.process_images {
         use crate::external::image_utils::make_square_with_blur;
-        make_square_with_blur(&image_bytes)?
+        make_square_with_blur(&image_bytes, &client.image_processing_options)?
     } else {
         image_bytes.to_vec()
     };
