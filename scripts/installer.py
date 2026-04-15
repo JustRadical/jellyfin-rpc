@@ -42,7 +42,7 @@ if platform.system() != "Windows":
 else:
     path = os.environ["APPDATA"].removesuffix("\\") + "\\jellyfin-rpc\\"
     subprocess.run(
-        ["powershell", "-Command", f'mkdir "{path}"'],
+        ["powershell", "-NoProfile", "-Command", f'mkdir "{path}"'],
         stdout=subprocess.DEVNULL,
     )
 
