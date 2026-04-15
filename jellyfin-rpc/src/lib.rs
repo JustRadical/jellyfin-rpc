@@ -371,21 +371,29 @@ impl Client {
     fn get_image(&self) -> JfResult<Url> {
         let session = self.session.as_ref().unwrap();
 
-        let path = "Items/".to_string() + &session.item_id + "/Images/Primary";
-
-        let image_url = self.url.join(&path)?;
-
-        if self
-            .reqwest
-            .get(image_url.as_ref())
-            .send()?
-            .text()?
-            .contains("does not have an image of type Primary")
-        {
-            Err(Box::new(JfError::NoImage))
+        let ids: Vec<&str> = if matches!(session.now_playing_item.media_type, MediaType::Music) {
+            vec![&session.now_playing_item.id, &session.item_id]
         } else {
-            Ok(image_url)
+            vec![&session.item_id]
+        };
+
+        for id in ids {
+            let path = "Items/".to_string() + id + "/Images/Primary";
+
+            let image_url = self.url.join(&path)?;
+
+            if !self
+                .reqwest
+                .get(image_url.as_ref())
+                .send()?
+                .text()?
+                .contains("does not have an image of type Primary")
+            {
+                return Ok(image_url);
+            }
         }
+
+        Err(Box::new(JfError::NoImage))
     }
 
     fn sanitize_display_format(input: &str) -> String {
