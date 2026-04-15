@@ -17,7 +17,7 @@ pub fn checker() {
         warn!("{}", "A newer version can be found at".red().bold());
         warn!(
             "{}",
-            "https://github.com/Radiicall/jellyfin-rpc/releases/latest"
+            "https://github.com/JustRadical/jellyfin-rpc/releases/latest"
                 .green()
                 .bold()
         );
@@ -29,10 +29,10 @@ pub fn checker() {
 }
 
 fn get_latest_github() -> Result<String, reqwest::Error> {
-    let url = reqwest::blocking::get("https://github.com/Radiicall/jellyfin-rpc/releases/latest")?
+    let url = reqwest::blocking::get("https://github.com/JustRadical/jellyfin-rpc/releases/latest")?
         .url()
         .as_str()
-        .trim_start_matches("https://github.com/Radiicall/jellyfin-rpc/releases/tag/")
+        .trim_start_matches("https://github.com/JustRadical/jellyfin-rpc/releases/tag/")
         .to_string();
     Ok(url)
 }
