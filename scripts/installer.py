@@ -67,7 +67,7 @@ if os.path.isfile(config_path):
 if not use_existing:
     print("----------Jellyfin----------")
     url = input("URL (include http/https): ")
-    api_key = input(f"API key [Create one here: {url}/web/index.html#!/apikeys.html]: ")
+    api_key = input(f"API key [Create one here: {url}/web/index.html#/dashboard/keys]: ")
     print(
         "Enter a single username or enter multiple usernames in a comma separated list."
     )
@@ -148,8 +148,8 @@ if not use_existing:
     else:
         blacklist = None
 
-    show_simple = confirm(
-        message="Do you want to show episode names in RPC?", default=True, direct=True
+    show_simple = not confirm(
+        message="Do you want to see episode names in the activity?", default=True, direct=None
     )
 
     append_prefix = confirm(
@@ -213,16 +213,19 @@ if not use_existing:
     print("----------Images----------")
     images = confirm(message="Do you want images?", default=False)
     if images:
-        imgur_images = confirm("Do you want imgur images?", default=False, direct=True)
+        imgur_images = confirm("Do you want to use imgur for images?", default=False, direct=True)
+        litterbox_images = False
         if imgur_images:
             client_id = input("Enter your imgur client id: ")
             imgur = {"client_id": client_id}
         else:
+            litterbox_images = confirm("Do you want to use litterbox for images?", default=False, direct=True)
             imgur = None
 
         images = {
             "enable_images": True,
             "imgur_images": imgur_images,
+            "litterbox_images": litterbox_images,
         }
     else:
         imgur = None
