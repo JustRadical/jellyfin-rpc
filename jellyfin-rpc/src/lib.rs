@@ -259,45 +259,49 @@ impl Client {
 
         debug!("Found {} sessions", sessions.len());
 
-        for session in sessions {
-            debug!("Session username is {:?}", session.user_name);
-            if let Some(username) = session.user_name.as_ref() {
-                if self
-                    .usernames
+        self.session = self
+            .usernames
+            .iter()
+            .flat_map(|username| {
+                sessions
                     .iter()
-                    .all(|u| username.to_lowercase() != u.to_lowercase())
-                {
-                    continue;
-                }
+                    // find any session(s) for the current priority username
+                    .filter(move |session| {
+                        session.user_name.as_ref().is_some_and(|u| u == username)
+                    })
+            })
+            // take the first valid session
+            .find(|session| Self::is_valid_session(session))
+            .map(|session| session.clone().build());
 
-                if session.now_playing_item.is_none() {
-                    continue;
-                }
-                debug!("NowPlayingItem exists");
-
-                if session.play_state.is_none() {
-                    continue;
-                }
-                debug!("PlayState exists");
-
-                let session = session.build();
-
-                if session
-                    .now_playing_item
-                    .extra_type
-                    .as_ref()
-                    .is_some_and(|et| et == "ThemeSong")
-                {
-                    debug!("Session is playing a theme song, continuing loop");
-                    continue;
-                }
-
-                self.session = Some(session);
-                return Ok(());
-            }
-        }
-        self.session = None;
         Ok(())
+    }
+
+    /// Validate that the session we're checking has a now playing item, a play state, and is not a
+    /// theme song.
+    fn is_valid_session(session: &RawSession) -> bool {
+        if let RawSession {
+            now_playing_item: Some(now_playing_item),
+            play_state: Some(_),
+            ..
+        } = session
+        {
+            debug!("NowPlayingItem exists");
+            debug!("PlayState exists");
+
+            if now_playing_item
+                .extra_type
+                .as_ref()
+                .is_some_and(|et| et == "ThemeSong")
+            {
+                debug!("Session is playing a theme song, continuing loop");
+                false
+            } else {
+                true
+            }
+        } else {
+            false
+        }
     }
 
     fn get_buttons(&self) -> Option<Vec<Button>> {
@@ -988,7 +992,7 @@ struct ImgurOptions {
 
 struct LitterboxOptions {
     enabled: bool,
-    urls_location: String
+    urls_location: String,
 }
 
 /// Used to build a new Client
@@ -1270,7 +1274,7 @@ impl ClientBuilder {
     /// Having this cache lets you avoid uploading the same image several times to their service.
     ///
     /// Empty by default.
-    pub fn litterbox_urls_file_location<T: Into<String>>(&mut  self, location: T) -> &mut Self {
+    pub fn litterbox_urls_file_location<T: Into<String>>(&mut self, location: T) -> &mut Self {
         self.litterbox_urls_file_location = location.into();
         self
     }

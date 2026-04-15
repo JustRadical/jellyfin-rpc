@@ -1,7 +1,7 @@
 use serde::{de::Visitor, Deserialize, Serialize};
 use std::time::{SystemTime, SystemTimeError, UNIX_EPOCH};
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "PascalCase")]
 pub struct RawSession {
     pub user_name: Option<String>,
@@ -307,7 +307,7 @@ impl From<String> for MediaType {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "PascalCase")]
 pub struct PlayState {
     pub is_paused: bool,
