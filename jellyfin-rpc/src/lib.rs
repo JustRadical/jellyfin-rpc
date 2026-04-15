@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use std::time::SystemTime;
 use url::Url;
+pub use external::image_utils::ImageProcessingOptions;
 
 mod error;
 mod external;
@@ -42,6 +43,7 @@ pub struct Client {
     imgur_options: ImgurOptions,
     litterbox_options: LitterboxOptions,
     process_images: bool,
+    image_processing_options: external::image_utils::ImageProcessingOptions,
     large_image_text: String,
 }
 
@@ -257,45 +259,49 @@ impl Client {
 
         debug!("Found {} sessions", sessions.len());
 
-        for session in sessions {
-            debug!("Session username is {:?}", session.user_name);
-            if let Some(username) = session.user_name.as_ref() {
-                if self
-                    .usernames
+        self.session = self
+            .usernames
+            .iter()
+            .flat_map(|username| {
+                sessions
                     .iter()
-                    .all(|u| username.to_lowercase() != u.to_lowercase())
-                {
-                    continue;
-                }
+                    // find any session(s) for the current priority username
+                    .filter(move |session| {
+                        session.user_name.as_ref().is_some_and(|u| u == username)
+                    })
+            })
+            // take the first valid session
+            .find(|session| Self::is_valid_session(session))
+            .map(|session| session.clone().build());
 
-                if session.now_playing_item.is_none() {
-                    continue;
-                }
-                debug!("NowPlayingItem exists");
-
-                if session.play_state.is_none() {
-                    continue;
-                }
-                debug!("PlayState exists");
-
-                let session = session.build();
-
-                if session
-                    .now_playing_item
-                    .extra_type
-                    .as_ref()
-                    .is_some_and(|et| et == "ThemeSong")
-                {
-                    debug!("Session is playing a theme song, continuing loop");
-                    continue;
-                }
-
-                self.session = Some(session);
-                return Ok(());
-            }
-        }
-        self.session = None;
         Ok(())
+    }
+
+    /// Validate that the session we're checking has a now playing item, a play state, and is not a
+    /// theme song.
+    fn is_valid_session(session: &RawSession) -> bool {
+        if let RawSession {
+            now_playing_item: Some(now_playing_item),
+            play_state: Some(_),
+            ..
+        } = session
+        {
+            debug!("NowPlayingItem exists");
+            debug!("PlayState exists");
+
+            if now_playing_item
+                .extra_type
+                .as_ref()
+                .is_some_and(|et| et == "ThemeSong")
+            {
+                debug!("Session is playing a theme song, continuing loop");
+                false
+            } else {
+                true
+            }
+        } else {
+            false
+        }
     }
 
     fn get_buttons(&self) -> Option<Vec<Button>> {
@@ -367,21 +373,29 @@ impl Client {
     fn get_image(&self) -> JfResult<Url> {
         let session = self.session.as_ref().unwrap();
 
-        let path = "Items/".to_string() + &session.item_id + "/Images/Primary";
-
-        let image_url = self.url.join(&path)?;
-
-        if self
-            .reqwest
-            .get(image_url.as_ref())
-            .send()?
-            .text()?
-            .contains("does not have an image of type Primary")
-        {
-            Err(Box::new(JfError::NoImage))
+        let ids: Vec<&str> = if matches!(session.now_playing_item.media_type, MediaType::Music) {
+            vec![&session.now_playing_item.id, &session.item_id]
         } else {
-            Ok(image_url)
+            vec![&session.item_id]
+        };
+
+        for id in ids {
+            let path = "Items/".to_string() + id + "/Images/Primary";
+
+            let image_url = self.url.join(&path)?;
+
+            if !self
+                .reqwest
+                .get(image_url.as_ref())
+                .send()?
+                .text()?
+                .contains("does not have an image of type Primary")
+            {
+                return Ok(image_url);
+            }
         }
+
+        Err(Box::new(JfError::NoImage))
     }
 
     fn sanitize_display_format(input: &str) -> String {
@@ -978,7 +992,7 @@ struct ImgurOptions {
 
 struct LitterboxOptions {
     enabled: bool,
-    urls_location: String
+    urls_location: String,
 }
 
 /// Used to build a new Client
@@ -1013,6 +1027,10 @@ pub struct ClientBuilder {
     litterbox_urls_file_location: String,
     large_image_text: String,
     process_images: bool,
+    image_size: Option<u32>,
+    image_background: bool,
+    image_background_blur: f32,
+    image_corner_radius: Option<f32>,
 }
 
 impl ClientBuilder {
@@ -1032,6 +1050,9 @@ impl ClientBuilder {
             }),
             show_paused: true,
             process_images: true,
+            image_background: true,
+            image_background_blur: 3.0,
+            image_corner_radius: Some(4.0),
             ..Default::default()
         }
     }
@@ -1253,7 +1274,7 @@ impl ClientBuilder {
     /// Having this cache lets you avoid uploading the same image several times to their service.
     ///
     /// Empty by default.
-    pub fn litterbox_urls_file_location<T: Into<String>>(&mut  self, location: T) -> &mut Self {
+    pub fn litterbox_urls_file_location<T: Into<String>>(&mut self, location: T) -> &mut Self {
         self.litterbox_urls_file_location = location.into();
         self
     }
@@ -1263,6 +1284,34 @@ impl ClientBuilder {
     /// Defaults to `true`.
     pub fn process_images(&mut self, val: bool) -> &mut Self {
         self.process_images = val;
+        self
+    }
+
+    /// Set the size of the processed image (e.g., 512 for 512x512px).
+    /// Default: uses original image's largest dimension.
+    pub fn image_size(&mut self, size: Option<u32>) -> &mut Self {
+        self.image_size = size;
+        self
+    }
+
+    /// Enable or disable the blurred background for processed images.
+    /// Defaults to `true`. When disabled the background is transparent.
+    pub fn image_background(&mut self, val: bool) -> &mut Self {
+        self.image_background = val;
+        self
+    }
+
+    /// Set the blur radius for the background image as a percentage of canvas size.
+    /// Valid range: 0-50. Defaults to `3.0`.
+    pub fn image_background_blur(&mut self, blur: f32) -> &mut Self {
+        self.image_background_blur = blur;
+        self
+    }
+
+    /// Set the rounded corner radius as a percentage of the image size.
+    /// Only applied when background is disabled. Defaults to `4.0`.
+    pub fn image_corner_radius(&mut self, radius: Option<f32>) -> &mut Self {
+        self.image_corner_radius = radius;
         self
     }
 
@@ -1342,6 +1391,12 @@ impl ClientBuilder {
                 urls_location: self.litterbox_urls_file_location,
             },
             process_images: self.process_images,
+            image_processing_options: external::image_utils::ImageProcessingOptions {
+                size: self.image_size,
+                background: self.image_background,
+                background_blur: self.image_background_blur,
+                corner_radius: self.image_corner_radius,
+            },
             large_image_text: self.large_image_text,
         })
     }

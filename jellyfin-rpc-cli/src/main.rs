@@ -101,6 +101,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .use_imgur(conf.images.imgur_images)
         .use_litterbox(conf.images.litterbox_images)
         .process_images(conf.images.process_images)
+        .image_size(conf.images.size)
+        .image_background(conf.images.bg)
+        .image_background_blur(conf.images.bg_blur)
+        .image_corner_radius(conf.images.corner_radius)
         .large_image_text(format!("Jellyfin-RPC v{}", VERSION.unwrap_or("UNKNOWN")))
         .imgur_urls_file_location(args.image_urls.clone().unwrap_or(get_urls_path()?))
         .litterbox_urls_file_location(args.image_urls.unwrap_or(get_urls_path()?));
