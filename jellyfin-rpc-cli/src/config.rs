@@ -76,6 +76,16 @@ pub struct Images {
     pub litterbox_images: bool,
     /// Processes images by making them square and adding a blur.
     pub process_images: bool,
+    /// The size of the output square image canvas (e.g., 512 for 512x512px).
+    pub size: Option<u32>,
+    /// Whether to create a blurred background. Default: true.
+    pub bg: bool,
+    /// The blur radius for the background image as a percentage of canvas size.
+    /// Default: 3.
+    pub bg_blur: f32,
+    /// Corner radius as a percentage of the image size.
+    /// Only applied when background is disabled. Default: 4.
+    pub corner_radius: Option<f32>,
 }
 
 impl Config {
@@ -164,6 +174,16 @@ pub struct ImagesBuilder {
     pub imgur_images: Option<bool>,
     pub litterbox_images: Option<bool>,
     pub process_images: Option<bool>,
+    /// The size of the output square image canvas (e.g., 512 for 512x512px).
+    pub size: Option<u32>,
+    /// Whether to create a blurred background. Default: true.
+    pub bg: Option<bool>,
+    /// The blur radius for the background image as a percentage of canvas size.
+    /// Default: 3.
+    pub bg_blur: Option<f32>,
+    /// Corner radius as a percentage of the image size.
+    /// Only applied when background is disabled. Default: 4.
+    pub corner_radius: Option<f32>,
 }
 
 /// Find urls.json in filesystem, used to store images that were already previously uploaded to imgur.
@@ -368,17 +388,29 @@ impl ConfigBuilder {
         let imgur_images;
         let litterbox_images;
         let process_images;
+        let image_size;
+        let image_bg;
+        let image_bg_blur;
+        let image_corner_radius;
 
         if let Some(images) = self.images {
             enable_images = images.enable_images.unwrap_or(false);
             imgur_images = images.imgur_images.unwrap_or(false);
             litterbox_images = images.litterbox_images.unwrap_or(false);
             process_images = images.process_images.unwrap_or(true);
+            image_size = images.size;
+            image_bg = images.bg.unwrap_or(true);
+            image_bg_blur = images.bg_blur.unwrap_or(3.0);
+            image_corner_radius = images.corner_radius.or(Some(4.0));
         } else {
             enable_images = false;
             imgur_images = false;
             litterbox_images = false;
             process_images = true;
+            image_size = None;
+            image_bg = true;
+            image_bg_blur = 3.0;
+            image_corner_radius = Some(4.0);
         }
 
         let url;
@@ -429,6 +461,10 @@ impl ConfigBuilder {
                 imgur_images,
                 litterbox_images,
                 process_images,
+                size: image_size,
+                bg: image_bg,
+                bg_blur: image_bg_blur,
+                corner_radius: image_corner_radius,
             },
         }
     }

@@ -42,6 +42,10 @@
         "enable_images": true,
         "imgur_images": true,
         "litterbox_images": false,
-        "process_images": true
+        "process_images": true,
+        "size": 512,
+        "bg": true,
+        "bg_blur": 3,
+        "corner_radius": 4
     }
 }
