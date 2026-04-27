@@ -23,31 +23,34 @@ For setup instructions refer to the [Wiki](https://github.com/JustRadical/jellyf
 
 #### Movie
 
-![Jellyfin-RPC Displaying a Movie in Discord](https://github.com/JustRadical/jellyfin-rpc/assets/66682497/95530d9c-72c9-47c2-bd67-645e444bbe21)
+<img alt="Jellyfin-RPC Displaying a Movie in Discord" src="https://github.com/user-attachments/assets/b4663372-e145-414c-82e1-b4343512da08" />
 
 #### Episode
 
-![Jellyfin-RPC Displaying a TV Show Episode in Discord](https://github.com/JustRadical/jellyfin-rpc/assets/66682497/0a552046-350b-415d-913a-8956723e5684)
+<img alt="Jellyfin-RPC Displaying a TV Show Episode in Discord" src="https://github.com/user-attachments/assets/5ae1db9f-8897-4340-b660-a998195a26b8" />
+
 
 #### Music
 
-![Jellyfin-RPC Displaying a Song in Discord](https://github.com/JustRadical/jellyfin-rpc/assets/66682497/103b84af-a9c9-49e4-9a15-c5c47051a994)
+<img alt="Jellyfin-RPC Displaying a Song in Discord" src="https://github.com/user-attachments/assets/b5963c01-37ed-4c4f-bff3-c0310a11dc14" />
 
 #### Live TV
 
+###### Note: does not look like this anymore, no longer have this set up to test
 ![Jellyfin-RPC Displaying a TV Channel in Discord](https://github.com/JustRadical/jellyfin-rpc/assets/66682497/1d9cf0af-96f2-438b-b147-904ab65bcc48)
 
 #### Book
 
-![Jellyfin-RPC Displaying a Book in Discord](https://github.com/JustRadical/jellyfin-rpc/assets/66682497/0a37013f-5fba-43fc-afa4-ba67baf2509d)
+<img alt="Jellyfin-RPC Displaying a Book in Discord" src="https://github.com/user-attachments/assets/bd7b70ab-a4ee-4f3b-8437-a500e33441c5" />
 
 #### Audiobook
 
+###### Note: does not look like this anymore, no longer have this set up to test
 ![Jellyfin-RPC Displaying an Audiobook in Discord](https://github.com/JustRadical/jellyfin-rpc/assets/66682497/3a7845ae-0219-4932-a1a2-efb44f40a171)
 
 #### Terminal
 
-![Image of terminal/cmd output](https://github.com/JustRadical/jellyfin-rpc/assets/66682497/4da2c59e-f6c7-49d8-89f6-b2704d9b66c3)
+<img width="847" height="246" alt="Image of terminal/cmd output" src="https://github.com/user-attachments/assets/cc603d06-784b-4d4b-b35b-04af006775bd" />
 
 </details>
 
