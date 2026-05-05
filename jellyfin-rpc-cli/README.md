@@ -1,5 +1,5 @@
 # Jellyfin-RPC
-[![License](https://shields.io/github/license/JustRadical/jellyfin-rpc?color=purple)](https://www.gnu.org/licenses/gpl-3.0-standalone.html)
+[![License](https://img.shields.io/github/license/JustRadical/jellyfin-rpc?color=purple)](https://www.gnu.org/licenses/gpl-3.0-standalone.html)
 [![Crates.io](https://img.shields.io/crates/v/jellyfin-rpc-cli.svg)](https://crates.io/crates/jellyfin-rpc-cli)
 [![Downloads](https://shields.io/github/downloads/JustRadical/jellyfin-rpc/total)](https://github.com/JustRadical/jellyfin-rpc/releases/latest)
 [![Visitors](https://visitor-badge.laobi.icu/badge?page_id=radiicall.jellyfin-rpc)](https://github.com/JustRadical/jellyfin-rpc)
