@@ -294,7 +294,7 @@ if platform.system() == "Windows":
     <name>Jellyfin-RPC</name>
     <description>This service is running Jellyfin-RPC for rich presence support</description>
     <executable>{path}jellyfin-rpc.exe</executable>
-    <arguments>-c {path}main.json -i {path}urls.json</arguments>
+    <arguments>-c &quot;{path}main.json&quot; -i &quot;{path}urls.json&quot;</arguments>
 </service>"""
 
         file = open(path + "winsw.xml", "w")
