@@ -42,6 +42,7 @@
         "enable_images": true,
         "imgur_images": true,
         "litterbox_images": false,
+        "zipline_images": false,
         "process_images": true,
         "size": 512,
         "bg": true,
