@@ -15,6 +15,8 @@ pub struct Config {
     pub discord: Discord,
     /// Imgur configuration.
     pub imgur: Imgur,
+    /// Zipline configuration.
+    pub zipline: Zipline,
     /// Images configuration.
     pub images: Images,
 }
@@ -74,6 +76,8 @@ pub struct Images {
     pub imgur_images: bool,
     /// Enables litterbox images.
     pub litterbox_images: bool,
+    /// Enables Zipline images.
+    pub zipline_images: bool,
     /// Processes images by making them square and adding a blur.
     pub process_images: bool,
     /// The size of the output square image canvas (e.g., 512 for 512x512px).
@@ -100,6 +104,7 @@ pub struct ConfigBuilder {
     pub jellyfin: JellyfinBuilder,
     pub discord: Option<DiscordBuilder>,
     pub imgur: Option<Imgur>,
+    pub zipline: Option<Zipline>,
     pub images: Option<ImagesBuilder>,
 }
 
@@ -168,11 +173,26 @@ pub struct Imgur {
     pub client_id: Option<String>,
 }
 
+#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq)]
+pub struct Zipline {
+    pub url: Option<String>,
+    pub token: Option<String>,
+    pub expiry: Option<String>,
+    pub format: Option<String>,
+    pub image_compression_percent: Option<u8>,
+    pub image_compression_type: Option<String>,
+    #[serde(default)]
+    pub original_name: bool,
+    pub folder: Option<String>,
+    pub domain: Option<String>,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ImagesBuilder {
     pub enable_images: Option<bool>,
     pub imgur_images: Option<bool>,
     pub litterbox_images: Option<bool>,
+    pub zipline_images: Option<bool>,
     pub process_images: Option<bool>,
     /// The size of the output square image canvas (e.g., 512 for 512x512px).
     pub size: Option<u32>,
@@ -251,6 +271,7 @@ impl ConfigBuilder {
             },
             discord: None,
             imgur: None,
+            zipline: None,
             images: None,
         }
     }
@@ -384,9 +405,12 @@ impl ConfigBuilder {
             client_id = None
         }
 
+        let zipline = self.zipline.unwrap_or_default();
+        
         let enable_images;
         let imgur_images;
         let litterbox_images;
+        let zipline_images;
         let process_images;
         let image_size;
         let image_bg;
@@ -397,6 +421,7 @@ impl ConfigBuilder {
             enable_images = images.enable_images.unwrap_or(false);
             imgur_images = images.imgur_images.unwrap_or(false);
             litterbox_images = images.litterbox_images.unwrap_or(false);
+            zipline_images = images.zipline_images.unwrap_or(false);
             process_images = images.process_images.unwrap_or(true);
             image_size = images.size;
             image_bg = images.bg.unwrap_or(true);
@@ -406,6 +431,7 @@ impl ConfigBuilder {
             enable_images = false;
             imgur_images = false;
             litterbox_images = false;
+            zipline_images = false;
             process_images = true;
             image_size = None;
             image_bg = true;
@@ -456,10 +482,12 @@ impl ConfigBuilder {
                 show_paused,
             },
             imgur: Imgur { client_id },
+            zipline,
             images: Images {
                 enable_images,
                 imgur_images,
                 litterbox_images,
+                zipline_images,
                 process_images,
                 size: image_size,
                 bg: image_bg,

@@ -100,6 +100,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .show_images(conf.images.enable_images)
         .use_imgur(conf.images.imgur_images)
         .use_litterbox(conf.images.litterbox_images)
+        .use_zipline(conf.images.zipline_images)
+        .zipline_url(conf.zipline.url.unwrap_or_default())
+        .zipline_token(conf.zipline.token.unwrap_or_default())
+        .zipline_expiry(conf.zipline.expiry)
+        .zipline_format(conf.zipline.format)
+        .zipline_image_compression_percent(conf.zipline.image_compression_percent)
+        .zipline_image_compression_type(conf.zipline.image_compression_type)
+        .zipline_original_name(conf.zipline.original_name)
+        .zipline_folder(conf.zipline.folder)
+        .zipline_domain(conf.zipline.domain)
         .process_images(conf.images.process_images)
         .image_size(conf.images.size)
         .image_background(conf.images.bg)
@@ -107,7 +117,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .image_corner_radius(conf.images.corner_radius)
         .large_image_text(format!("Jellyfin-RPC v{}", VERSION.unwrap_or("UNKNOWN")))
         .imgur_urls_file_location(args.image_urls.clone().unwrap_or(get_urls_path()?))
-        .litterbox_urls_file_location(args.image_urls.unwrap_or(get_urls_path()?));
+        .litterbox_urls_file_location(args.image_urls.clone().unwrap_or(get_urls_path()?))
+        .zipline_urls_file_location(args.image_urls.unwrap_or(get_urls_path()?));
 
     if let Some(display) = conf.jellyfin.music.display {
         debug!("Found config.jellyfin.music.display");

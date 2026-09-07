@@ -42,6 +42,7 @@ pub struct Client {
     show_images: bool,
     imgur_options: ImgurOptions,
     litterbox_options: LitterboxOptions,
+    zipline_options: ZiplineOptions,
     process_images: bool,
     image_processing_options: external::image_utils::ImageProcessingOptions,
     large_image_text: String,
@@ -152,6 +153,12 @@ impl Client {
                     image_url = litterbox_url;
                 } else {
                     debug!("litterbox::get_image() didn't return an image, using default..")
+                }
+            } else if self.zipline_options.enabled && self.show_images {
+                if let Ok(zipline_url) = external::zipline::get_image(self) {
+                    image_url = zipline_url;
+                } else {
+                    debug!("zipline::get_image() didn't return an image, using default..")
                 }
             } else if self.show_images {
                 if let Ok(iu) = self.get_image() {
@@ -995,6 +1002,20 @@ struct LitterboxOptions {
     urls_location: String,
 }
 
+struct ZiplineOptions {
+    enabled: bool,
+    url: String,
+    token: String,
+    urls_location: String,
+    expiry: Option<String>,
+    format: Option<String>,
+    image_compression_percent: Option<u8>,
+    image_compression_type: Option<String>,
+    original_name: bool,
+    folder: Option<String>,
+    domain: Option<String>,
+}
+
 /// Used to build a new Client
 #[derive(Default)]
 pub struct ClientBuilder {
@@ -1025,6 +1046,17 @@ pub struct ClientBuilder {
     imgur_urls_file_location: String,
     use_litterbox: bool,
     litterbox_urls_file_location: String,
+    use_zipline: bool,
+    zipline_url: String,
+    zipline_token: String,
+    zipline_urls_file_location: String,
+    zipline_expiry: Option<String>,
+    zipline_format: Option<String>,
+    zipline_image_compression_percent: Option<u8>,
+    zipline_image_compression_type: Option<String>,
+    zipline_original_name: bool,
+    zipline_folder: Option<String>,
+    zipline_domain: Option<String>,
     large_image_text: String,
     process_images: bool,
     image_size: Option<u32>,
@@ -1279,7 +1311,65 @@ impl ClientBuilder {
         self
     }
 
-    /// Process images before uploading to imgur or litterbox
+    pub fn use_zipline(&mut self, val: bool) -> &mut Self {
+        self.use_zipline = val;
+        self
+    }
+
+    pub fn zipline_url<T: Into<String>>(&mut self, url: T) -> &mut Self {
+        self.zipline_url = url.into();
+        self
+    }
+
+    pub fn zipline_token<T: Into<String>>(&mut self, token: T) -> &mut Self {
+        self.zipline_token = token.into();
+        self
+    }
+
+    pub fn zipline_urls_file_location<T: Into<String>>(&mut self, location: T) -> &mut Self {
+        self.zipline_urls_file_location = location.into();
+        self
+    }
+
+    pub fn zipline_expiry<T: Into<String>>(&mut self, expiry: Option<T>) -> &mut Self {
+        self.zipline_expiry = expiry.map(Into::into);
+        self
+    }
+
+    pub fn zipline_format<T: Into<String>>(&mut self, format: Option<T>) -> &mut Self {
+        self.zipline_format = format.map(Into::into);
+        self
+    }
+
+    pub fn zipline_image_compression_percent(&mut self, percent: Option<u8>) -> &mut Self {
+        self.zipline_image_compression_percent = percent;
+        self
+    }
+
+    pub fn zipline_image_compression_type<T: Into<String>>(
+        &mut self,
+        compression_type: Option<T>,
+    ) -> &mut Self {
+        self.zipline_image_compression_type = compression_type.map(Into::into);
+        self
+    }
+
+    pub fn zipline_original_name(&mut self, val: bool) -> &mut Self {
+        self.zipline_original_name = val;
+        self
+    }
+
+    pub fn zipline_folder<T: Into<String>>(&mut self, folder: Option<T>) -> &mut Self {
+        self.zipline_folder = folder.map(Into::into);
+        self
+    }
+
+    pub fn zipline_domain<T: Into<String>>(&mut self, domain: Option<T>) -> &mut Self {
+        self.zipline_domain = domain.map(Into::into);
+        self
+    }
+
+    /// Process images before uploading to imgur, litterbox, or zipline
     ///
     /// Defaults to `true`.
     pub fn process_images(&mut self, val: bool) -> &mut Self {
@@ -1389,6 +1479,19 @@ impl ClientBuilder {
             litterbox_options: LitterboxOptions {
                 enabled: self.use_litterbox,
                 urls_location: self.litterbox_urls_file_location,
+            },
+            zipline_options: ZiplineOptions {
+                enabled: self.use_zipline,
+                url: self.zipline_url,
+                token: self.zipline_token,
+                urls_location: self.zipline_urls_file_location,
+                expiry: self.zipline_expiry,
+                format: self.zipline_format,
+                image_compression_percent: self.zipline_image_compression_percent,
+                image_compression_type: self.zipline_image_compression_type,
+                original_name: self.zipline_original_name,
+                folder: self.zipline_folder,
+                domain: self.zipline_domain,
             },
             process_images: self.process_images,
             image_processing_options: external::image_utils::ImageProcessingOptions {
